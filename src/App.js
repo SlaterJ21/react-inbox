@@ -3,82 +3,48 @@ import './App.css'
 import Toolbar from './Toolbar.js'
 import MessageList from './MessageList'
 
-const messages = [
-  {
-    "id": 1,
-    "subject": "You can't input the protocol without calculating the mobile RSS protocol!",
-    "read": false,
-    "starred": true,
-    "labels": ["dev", "personal"]
-  },
-  {
-    "id": 2,
-    "subject": "connecting the system won't do anything, we need to input the mobile AI panel!",
-    "read": false,
-    "starred": false,
-    "selected": true,
-    "labels": []
-  },
-  {
-    "id": 3,
-    "subject": "Use the 1080p HTTP feed, then you can parse the cross-platform hard drive!",
-    "read": false,
-    "starred": true,
-    "labels": ["dev"]
-  },
-  {
-    "id": 4,
-    "subject": "We need to program the primary TCP hard drive!",
-    "read": true,
-    "starred": false,
-    "selected": true,
-    "labels": []
-  },
-  {
-    "id": 5,
-    "subject": "If we override the interface, we can get to the HTTP feed through the virtual EXE interface!",
-    "read": false,
-    "starred": false,
-    "labels": ["personal"]
-  },
-  {
-    "id": 6,
-    "subject": "We need to back up the wireless GB driver!",
-    "read": true,
-    "starred": true,
-    "labels": []
-  },
-  {
-    "id": 7,
-    "subject": "We need to index the mobile PCI bus!",
-    "read": true,
-    "starred": false,
-    "labels": ["dev", "personal"]
-  },
-  {
-    "id": 8,
-    "subject": "If we connect the sensor, we can get to the HDD port through the redundant IB firewall!",
-    "read": true,
-    "starred": true,
-    "labels": []
-  }
-]
+const API = 'http://localhost:8082/api/messages'
 
 class App extends Component {
 
   constructor(props) {
     super(props)
     this.state = {
-      messages: messages
+      messages: []
     }
+  }
+
+  async componentDidMount() {
+    const response = await fetch(API)
+    const data = await response.json()
+    this.setState({messages: data})
+  }
+
+  update = async(id, boo, command, prop) => {
+    let obj = {
+      messageIds: [id],
+      command: command,
+      [prop]: boo
+    }
+    const response = await fetch(API, {
+        method: 'PATCH',
+        body: JSON.stringify(obj),
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
   }
 
   filterMessage = terms => {
      return this.state.messages.filter(terms)
   }
 
-  setMessages = () => {
-    this.setState({messages: this.state.messages});
+  setMessages = (id, boo, command, prop) => {
+    if(id){
+      this.update(id, boo, command, prop)
+    }
+    this.setState({messages: this.state.messages})
   }
 
   selectAll = () => {
@@ -120,8 +86,8 @@ class App extends Component {
 
   star = id => {
     const message = this.filterMessage(message => message.id === id)
-    message[0].starred ? message[0].starred = false : message[0].starred = true
-    this.setMessages()
+    const boo = message[0].starred ? message[0].starred = false : message[0].starred = true
+    this.setMessages(id, boo, 'star', 'starred')
   }
 
   unreadCount = () => {
