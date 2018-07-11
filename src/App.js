@@ -69,9 +69,7 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      messages: messages,
-      allSelected: false,
-      someSelected: true
+      messages: messages
     }
   }
 
@@ -80,43 +78,44 @@ class App extends Component {
   }
 
   setMessages = () => {
-    this.setState({
-      messages: this.state.messages
-    });
+    this.setState({messages: this.state.messages});
   }
 
   selectAll = () => {
-    const value = this.state.allSelected ? false : true
-    this.state.messages.map(message => message.selected = value)
+    const value = this.allSelected() ? false : true
+    this.state.messages.forEach(message => message.selected = value)
+    this.setMessages()
+    this.someSelected()
+  }
+
+  allSelected = () => {
+    let value = false
+    const check = this.filterMessage(message => message.selected === true)
+    value = check.length === this.state.messages.length ? true : false
+    return value
+  }
+
+  someSelected = () => {
+    let value = true
+    const check = this.filterMessage(message => message.selected === true)
+    value = check.length > 0 ? true : false
+    return value
+  }
+
+  delete = () => {
+    const message = this.filterMessage(message => !message.selected)
+    this.someSelected()
     this.setState({
-      messages: this.state.messages,
-      allSelected: value,
-      someSelected: value
+      messages: message
     })
   }
 
-  handleSelect = id => {
-    this.setState({
-      allSelected: false
-    })
+  checkbox = id => {
     const select = this.filterMessage(message => message.id === id)[0]
     select.selected ? select.selected = false : select.selected = true
     this.setMessages()
-    const check = this.filterMessage(message => message.selected === true)
-    if(check.length >= 1){
-      this.setState({
-        someSelected: true
-      })
-    } else {
-      this.setState({
-        someSelected: false
-      })
-    }
-    if(check.length === this.state.messages.length){
-      this.setState({
-        allSelected: true
-      })
-    }
+    this.allSelected()
+    this.someSelected()
   }
 
   star = id => {
@@ -138,27 +137,20 @@ class App extends Component {
 
   label = (value, e) => {
     const messages = this.filterMessage(message => message.selected === true)
-    if(e.target.value === 'Apply label'){
-    } else if (value === 'apply'){
-      const unlabeled = messages.filter(message => !message.labels.includes(e.target.value))
-      unlabeled.map(message => message.labels.push(e.target.value))
+    if (value === 'apply'){
+      const unlabeled = messages.filter(message =>
+        !message.labels.includes(e.target.value))
+      unlabeled.forEach(message => message.labels.push(e.target.value))
       this.setMessages()
     } else if (value === 'remove'){
-      const labeled = messages.filter(message => message.labels.includes(e.target.value))
-      labeled.map(message => message.labels.splice(message.labels.indexOf(e.target.value), 1))
-      this.setState({
-        messages: this.state.messages
-      })
+      const labeled = messages.filter(message =>
+        message.labels.includes(e.target.value))
+      labeled.forEach(message =>
+        message.labels.splice(message.labels.indexOf(e.target.value), 1))
+      this.setMessages()
     }
   }
 
-  delete = () => {
-    const message = this.filterMessage(message => !message.selected)
-    this.setState({
-      messages: message,
-      someSelected: false
-    })
-  }
 
   render() {
     return (
@@ -169,12 +161,12 @@ class App extends Component {
           deleteMessage={ this.delete }
           unreadCount={ this.unreadCount }
           selectAll={ this.selectAll }
-          allSelected={ this.state.allSelected }
-          someSelected={ this.state.someSelected }
+          allSelected={ this.allSelected }
+          someSelected={ this.someSelected }
         />
         <MessageList
           messages={ this.state.messages }
-          handleSelect={ this.handleSelect }
+          checkbox={ this.checkbox }
           star={ this.star }
         />
       </div>
