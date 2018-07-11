@@ -73,41 +73,36 @@ class App extends Component {
       allSelected: false,
       someSelected: true
     }
-    this.selectAll = this.selectAll.bind(this)
-    this.handleSelect = this.handleSelect.bind(this)
-    this.star = this.star.bind(this)
-    this.read = this.read.bind(this)
-    this.delete = this.delete.bind(this)
   }
 
-  selectAll(){
-    if(!this.state.allSelected){
-      this.state.messages.map(message => message.selected = true)
-      this.setState({
-        messages: this.state.messages,
-        allSelected: true,
-        someSelected: false
-      })
-    } else {
-      this.state.messages.map(message => message.selected = false)
-      this.setState({
-        messages: this.state.messages,
-        allSelected: false,
-        someSelected: false
-      });
-    }
+  filterMessage = terms => {
+     return this.state.messages.filter(terms)
   }
 
-  handleSelect(id){
+  setMessages = () => {
+    this.setState({
+      messages: this.state.messages
+    });
+  }
+
+  selectAll = () => {
+    const value = this.state.allSelected ? false : true
+    this.state.messages.map(message => message.selected = value)
+    this.setState({
+      messages: this.state.messages,
+      allSelected: value,
+      someSelected: value
+    })
+  }
+
+  handleSelect = id => {
     this.setState({
       allSelected: false
     })
-    const select = this.state.messages.filter(message => message.id == id)
-    select[0].selected ? select[0].selected = false : select[0].selected = true
-          this.setState({
-            messages: this.state.messages
-          });
-    const check = this.state.messages.filter(message => message.selected == true)
+    const select = this.filterMessage(message => message.id === id)[0]
+    select.selected ? select.selected = false : select.selected = true
+    this.setMessages()
+    const check = this.filterMessage(message => message.selected === true)
     if(check.length >= 1){
       this.setState({
         someSelected: true
@@ -124,42 +119,44 @@ class App extends Component {
     }
   }
 
-  star(id){
-    const message = this.state.messages.filter(message => message.id == id)
+  star = id => {
+    const message = this.filterMessage(message => message.id === id)
     message[0].starred ? message[0].starred = false : message[0].starred = true
-          this.setState({
-            messages: messages
-          });
+    this.setMessages()
   }
 
-  read(value){
-    if(value === 'read'){
-      const message = this.state.messages
-      .filter(message => message.selected === true)
-      const readMessage = message.map(message => message.read = true)
-        this.setState({
-          messages: this.state.messages
-        });
-    }
-    if(value === 'unread'){
-    const message = this.state.messages
-    .filter(message => message.selected === true)
-    const readMessage = message.map(message => message.read = false)
+  unreadCount = () => {
+    const unreadCount = this.filterMessage(message => message.read === false)
+    return unreadCount.length
+  }
+
+  read = value => {
+    const message = this.filterMessage(message => message.selected === true)
+    message.map(message => message.read = value)
+    this.setMessages()
+  }
+
+  label = (value, e) => {
+    const messages = this.filterMessage(message => message.selected === true)
+    if(e.target.value === 'Apply label'){
+    } else if (value === 'apply'){
+      const unlabeled = messages.filter(message => !message.labels.includes(e.target.value))
+      unlabeled.map(message => message.labels.push(e.target.value))
+      this.setMessages()
+    } else if (value === 'remove'){
+      const labeled = messages.filter(message => message.labels.includes(e.target.value))
+      labeled.map(message => message.labels.splice(message.labels.indexOf(e.target.value), 1))
       this.setState({
         messages: this.state.messages
-      });
+      })
     }
   }
 
-  delete(){
+  delete = () => {
+    const message = this.filterMessage(message => !message.selected)
     this.setState({
-      messages: this.state.messages
-    })
-    const message = this.state.messages
-    .filter(message => message.selected === false)
-    console.log(message)
-    this.setState({
-      messages: message
+      messages: message,
+      someSelected: false
     })
   }
 
@@ -168,8 +165,10 @@ class App extends Component {
       <div className="App">
         <Toolbar
           read={ this.read }
+          label={ this.label }
+          deleteMessage={ this.delete }
+          unreadCount={ this.unreadCount }
           selectAll={ this.selectAll }
-          delete={ this.delete }
           allSelected={ this.state.allSelected }
           someSelected={ this.state.someSelected }
         />
