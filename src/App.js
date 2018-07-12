@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import './App.css'
 import Toolbar from './Toolbar.js'
 import MessageList from './MessageList'
+import ComposeForm from './ComposeForm'
+
 
 const API = 'http://localhost:8082/api/messages'
 
@@ -10,7 +12,8 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      messages: []
+      messages: [],
+      compose: false
     }
   }
 
@@ -20,11 +23,11 @@ class App extends Component {
     this.setState({messages: data})
   }
 
-  update = async(id, boo, command, prop) => {
+  update = async(id, command, value, prop) => {
     let obj = {
-      messageIds: [id],
+      messageIds: id,
       command: command,
-      [prop]: boo
+      [prop]: value
     }
     const response = await fetch(API, {
         method: 'PATCH',
@@ -34,17 +37,20 @@ class App extends Component {
             'Accept': 'application/json'
         }
     })
+    const messages = await response.json()
+    this.setState({messages: messages})
   }
 
   filterMessage = terms => {
      return this.state.messages.filter(terms)
   }
 
-  setMessages = (id, boo, command, prop) => {
+  setMessages = (id, command, value, prop) => {
     if(id){
-      this.update(id, boo, command, prop)
+      this.update(id, command, value, prop)
+    } else {
+      this.setState({messages: this.state.messages})
     }
-    this.setState({messages: this.state.messages})
   }
 
   selectAll = () => {
@@ -69,25 +75,23 @@ class App extends Component {
   }
 
   delete = () => {
-    const message = this.filterMessage(message => !message.selected)
+    const deleteMessageIds = this.filterMessage(message => message.selected).map(message => message.id)
     this.someSelected()
-    this.setState({
-      messages: message
-    })
+    this.setMessages(deleteMessageIds, 'delete')
   }
 
   checkbox = id => {
     const select = this.filterMessage(message => message.id === id)[0]
-    select.selected ? select.selected = false : select.selected = true
-    this.setMessages()
+    const value = select.selected ? select.selected = false : select.selected = true
+    this.setMessages([id], 'selected', value, 'selected')
     this.allSelected()
     this.someSelected()
   }
 
   star = id => {
     const message = this.filterMessage(message => message.id === id)
-    const boo = message[0].starred ? message[0].starred = false : message[0].starred = true
-    this.setMessages(id, boo, 'star', 'starred')
+    const value = message[0].starred ? message[0].starred = false : message[0].starred = true
+    this.setMessages([id], 'star', value, 'starred')
   }
 
   unreadCount = () => {
@@ -96,25 +100,31 @@ class App extends Component {
   }
 
   read = value => {
+    const ids = []
     const message = this.filterMessage(message => message.selected === true)
-    message.map(message => message.read = value)
-    this.setMessages()
+    message.map(message => {
+      ids.push(message.id)
+      return message.read = value
+    })
+    this.setMessages(ids, 'read', value, 'read')
   }
 
   label = (value, e) => {
     const messages = this.filterMessage(message => message.selected === true)
     if (value === 'apply'){
-      const unlabeled = messages.filter(message =>
-        !message.labels.includes(e.target.value))
-      unlabeled.forEach(message => message.labels.push(e.target.value))
-      this.setMessages()
+      const unlabeled = messages.filter(message => !message.labels.includes(e.target.value))
+      const ids = unlabeled.map(message => message.id)
+      this.setMessages(ids, 'addLabel', e.target.value, 'label')
     } else if (value === 'remove'){
       const labeled = messages.filter(message =>
         message.labels.includes(e.target.value))
-      labeled.forEach(message =>
-        message.labels.splice(message.labels.indexOf(e.target.value), 1))
-      this.setMessages()
+      const ids = labeled.map(message => message.id)
+      this.setMessages(ids, 'removeLabel', e.target.value, 'label')
     }
+  }
+
+  composeMessage = () => {
+    this.setState({compose: this.state.compose ? false : true})
   }
 
 
@@ -129,7 +139,9 @@ class App extends Component {
           selectAll={ this.selectAll }
           allSelected={ this.allSelected }
           someSelected={ this.someSelected }
+          composeMessage={ this.composeMessage }
         />
+        { this.state.compose ?  <ComposeForm />  : <div></div> }
         <MessageList
           messages={ this.state.messages }
           checkbox={ this.checkbox }

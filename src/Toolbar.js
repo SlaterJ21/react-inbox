@@ -1,13 +1,17 @@
 import React from 'react';
 
 const Toolbar = ({read, label, deleteMessage, unreadCount, selectAll,
-   allSelected, someSelected}) => (
+   allSelected, someSelected, composeMessage}) => (
   <div className="row toolbar">
     <div className="col-md-12">
       <p className="pull-right">
         <span className="badge badge">{unreadCount()}</span>
         unread messages
       </p>
+
+      <a className="btn btn-danger" onClick={ composeMessage }>
+        <i className="fa fa-plus"></i>
+      </a>
 
       <button className="btn btn-default" onClick={ selectAll }>
         <i className={`fa ${someSelected() && !allSelected() ?
