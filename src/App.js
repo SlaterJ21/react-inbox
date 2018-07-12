@@ -23,7 +23,7 @@ class App extends Component {
     this.setState({messages: data})
   }
 
-  update = async(id, command, value, prop) => {
+  setMessages = async(id, command, value, prop) => {
     let obj = {
       messageIds: id,
       command: command,
@@ -45,18 +45,11 @@ class App extends Component {
      return this.state.messages.filter(terms)
   }
 
-  setMessages = (id, command, value, prop) => {
-    if(id){
-      this.update(id, command, value, prop)
-    } else {
-      this.setState({messages: this.state.messages})
-    }
-  }
-
   selectAll = () => {
     const value = this.allSelected() ? false : true
-    this.state.messages.forEach(message => message.selected = value)
-    this.setMessages()
+    const change = this.filterMessage(message => message.selected !== value)
+    .map(message => message.id)
+    this.setMessages(change, 'selected', value, 'selected')
     this.someSelected()
   }
 
@@ -68,7 +61,7 @@ class App extends Component {
   }
 
   someSelected = () => {
-    let value = true
+    let value = false
     const check = this.filterMessage(message => message.selected === true)
     value = check.length > 0 ? true : false
     return value
@@ -123,10 +116,38 @@ class App extends Component {
     }
   }
 
-  composeMessage = () => {
+  composeForm = () => {
     this.setState({compose: this.state.compose ? false : true})
   }
 
+  composeMessage = async(e) => {
+    e.preventDefault()
+    console.log('subject', this.state.subject, 'body', this.state.body)
+    const obj = {
+      subject: this.state.subject,
+      body: this.state.body
+    }
+    const response = await fetch(API, {
+        method: 'post',
+        body: JSON.stringify(obj),
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    const messages = await response.json()
+    this.setState({messages: [...this.state.messages, messages]})
+    this.composeForm()
+  }
+
+  handleFormChange = e => {
+    const target = e.target
+    const value = target.value
+    const name = target.name
+    this.setState({
+      [name]: value
+    })
+  }
 
   render() {
     return (
@@ -139,9 +160,15 @@ class App extends Component {
           selectAll={ this.selectAll }
           allSelected={ this.allSelected }
           someSelected={ this.someSelected }
-          composeMessage={ this.composeMessage }
+          composeForm={ this.composeForm }
         />
-        { this.state.compose ?  <ComposeForm />  : <div></div> }
+        {this.state.compose ?
+          <ComposeForm
+            composeMessage={ this.composeMessage }
+            handleFormChange={ this.handleFormChange }
+          />
+          : <div></div>
+        }
         <MessageList
           messages={ this.state.messages }
           checkbox={ this.checkbox }

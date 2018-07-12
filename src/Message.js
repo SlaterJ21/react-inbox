@@ -30,6 +30,7 @@ const Message = ({id, subject, read, starred, labels, selected, checkbox,
       </a>
     </div>
   </div>
+
 )
 
 export default Message;
