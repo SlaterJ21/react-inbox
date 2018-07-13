@@ -38,7 +38,7 @@ const Toolbar = ({read, label, deleteMessage, unreadCount, selectAll,
 
       <select
         className="form-control label-select"
-        onChange={(e) => {label('apply', e); e.target.selectedIndex = 0}}
+        onChange={(e) => {label('apply', e.target.value); e.target.selectedIndex = 0}}
         disabled={someSelected() ? '' : 'disabled'}
       >
         <option>Apply label</option>
@@ -49,7 +49,7 @@ const Toolbar = ({read, label, deleteMessage, unreadCount, selectAll,
 
       <select
         className="form-control label-select"
-        onChange={(e) => {label('remove', e); e.target.selectedIndex = 0}}
+        onChange={(e) => {label('remove', e.target.value); e.target.selectedIndex = 0}}
         disabled={someSelected() ? '' : 'disabled'}
       >
         <option>Remove label</option>

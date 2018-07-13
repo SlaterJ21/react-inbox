@@ -92,27 +92,30 @@ class App extends Component {
     return unreadCount.length
   }
 
-  read = value => {
+  read = (value, id) => {
     const ids = []
     const message = this.filterMessage(message => message.selected === true)
     message.map(message => {
       ids.push(message.id)
       return message.read = value
     })
+    if(id){
+      ids.push(id)
+    }
     this.setMessages(ids, 'read', value, 'read')
   }
 
   label = (value, e) => {
     const messages = this.filterMessage(message => message.selected === true)
     if (value === 'apply'){
-      const unlabeled = messages.filter(message => !message.labels.includes(e.target.value))
+      const unlabeled = messages.filter(message => !message.labels.includes(value))
       const ids = unlabeled.map(message => message.id)
-      this.setMessages(ids, 'addLabel', e.target.value, 'label')
+      this.setMessages(ids, 'addLabel', value, 'label')
     } else if (value === 'remove'){
       const labeled = messages.filter(message =>
-        message.labels.includes(e.target.value))
+        message.labels.includes(value))
       const ids = labeled.map(message => message.id)
-      this.setMessages(ids, 'removeLabel', e.target.value, 'label')
+      this.setMessages(ids, 'removeLabel', value, 'label')
     }
   }
 
@@ -171,8 +174,10 @@ class App extends Component {
         }
         <MessageList
           messages={ this.state.messages }
+          showBody={ this.showBody }
           checkbox={ this.checkbox }
           star={ this.star }
+          read={ this.read }
         />
       </div>
     );
