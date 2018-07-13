@@ -11,7 +11,7 @@ const ComposeForm = ({composeMessage, handleFormChange}) => (
       <label htmlFor="subject" className="col-sm-2 control-label">Subject</label>
       <div className="col-sm-8">
         <input type="text" className="form-control" id="subject"
-          placeholder="Enter a subject" name="subject" onChange={(e) => handleFormChange(e)}/>
+          placeholder="Enter a subject" name="subject" onChange={(e) => handleFormChange(e)} required/>
       </div>
     </div>
     <div className="form-group">

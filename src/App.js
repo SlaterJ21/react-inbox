@@ -41,17 +41,30 @@ class App extends Component {
     this.setState({messages: messages})
   }
 
+  composeMessage = async(e) => {
+    e.preventDefault()
+    console.log('subject', this.state.subject, 'body', this.state.body)
+    const obj = {
+      subject: this.state.subject,
+      body: this.state.body
+    }
+    const response = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(obj),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+    const messages = await response.json()
+    this.setState({messages: [...this.state.messages, messages]})
+    this.composeForm()
+  }
+
   filterMessage = terms => {
      return this.state.messages.filter(terms)
   }
 
-  selectAll = () => {
-    const value = this.allSelected() ? false : true
-    const change = this.filterMessage(message => message.selected !== value)
-    .map(message => message.id)
-    this.setMessages(change, 'selected', value, 'selected')
-    this.someSelected()
-  }
 
   allSelected = () => {
     let value = false
@@ -67,10 +80,18 @@ class App extends Component {
     return value
   }
 
+  selectAll = () => {
+    const value = this.allSelected() ? false : true
+    const change = this.filterMessage(message => message.selected !== value)
+    .map(message => message.id)
+    this.setMessages(change, 'selected', value, 'selected')
+    this.someSelected()
+  }
+
   delete = () => {
     const deleteMessageIds = this.filterMessage(message => message.selected).map(message => message.id)
-    this.someSelected()
     this.setMessages(deleteMessageIds, 'delete')
+    this.someSelected()
   }
 
   checkbox = id => {
@@ -108,14 +129,14 @@ class App extends Component {
   label = (value, e) => {
     const messages = this.filterMessage(message => message.selected === true)
     if (value === 'apply'){
-      const unlabeled = messages.filter(message => !message.labels.includes(value))
+      const unlabeled = messages.filter(message => !message.labels.includes(e))
       const ids = unlabeled.map(message => message.id)
-      this.setMessages(ids, 'addLabel', value, 'label')
+      this.setMessages(ids, 'addLabel', e, 'label')
     } else if (value === 'remove'){
       const labeled = messages.filter(message =>
-        message.labels.includes(value))
+        message.labels.includes(e))
       const ids = labeled.map(message => message.id)
-      this.setMessages(ids, 'removeLabel', value, 'label')
+      this.setMessages(ids, 'removeLabel', e, 'label')
     }
   }
 
@@ -123,25 +144,6 @@ class App extends Component {
     this.setState({compose: this.state.compose ? false : true})
   }
 
-  composeMessage = async(e) => {
-    e.preventDefault()
-    console.log('subject', this.state.subject, 'body', this.state.body)
-    const obj = {
-      subject: this.state.subject,
-      body: this.state.body
-    }
-    const response = await fetch(API, {
-        method: 'post',
-        body: JSON.stringify(obj),
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-    })
-    const messages = await response.json()
-    this.setState({messages: [...this.state.messages, messages]})
-    this.composeForm()
-  }
 
   handleFormChange = e => {
     const target = e.target
